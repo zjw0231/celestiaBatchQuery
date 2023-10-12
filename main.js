@@ -6,6 +6,7 @@
 // 5. 运行 node main.js
 
 import axios from "axios"
+import fs from "fs"
 import { existsSync, readFileSync, writeFileSync } from "fs"
 import path from "path"
 import { CAPSOLVER_KEY, PAGE_KEY } from "./config.js"
@@ -130,14 +131,24 @@ async function batchQuery() {
     })
     await Promise.all(promises)
   }
-  // mmmm-yy-dd hh:mm:ss
-  const timeStamp = new Date().toLocaleString().replace(/\//g, "-")
-  const saveFileName = `result ${timeStamp}.json`
-  const csvFileName = `result ${timeStamp}.csv`
-  const csvData = Object.entries(finalRes).map(([addr, res]) => `${addr},${res}`).join("\n")
-  writeFileSync(path.resolve() + `/${saveFileName}`, JSON.stringify(finalRes, null, 2))
-  writeFileSync(path.resolve() + `/${csvFileName}`, csvData)
-  console.log(`query finished, result saved to ${saveFileName} and ${csvFileName}`)
+  const timeStamp = new Date().toLocaleString().replace(/\//g, "-").replace(/:/g, "-").replace(/, /g, " ");
+	const saveFileName = `result_${timeStamp}.json`;
+	const csvFileName = `result_${timeStamp}.csv`;
+	
+	// 假设 finalRes 是一个你想要写入的对象
+	const csvData = Object.entries(finalRes).map(([addr, res]) => `${addr},${res}`).join("\n");
+	
+	// 确保目录存在
+	const dirPath = path.resolve('G:/nodejs/celestiaBatchQuery');
+	if (!fs.existsSync(dirPath)) {
+	fs.mkdirSync(dirPath, { recursive: true });
+	}
+	
+	// 写入文件
+	fs.writeFileSync(path.join(dirPath, saveFileName), JSON.stringify(finalRes, null, 2));
+	fs.writeFileSync(path.join(dirPath, csvFileName), csvData);
+	
+	console.log(`query finished, result saved to ${saveFileName} and ${csvFileName}`);
 }
 
 batchQuery()
